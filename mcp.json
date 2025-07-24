@@ -1,0 +1,14 @@
+{
+  "name": "quranic-etymology-context",
+  "version": "1.0.0",
+  "description": "Quranic Etymology Explorer - Complete project context for AI development",
+  "type": "context-provider",
+  "capabilities": {
+    "tools": [
+      {
+        "name": "load_project_context",
+        "description": "Load complete Quranic Etymology Explorer project context"
+      }
+    ]
+  }
+}
