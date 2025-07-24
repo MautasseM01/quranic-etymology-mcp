@@ -1,0 +1,36 @@
+{
+  "name": "quranic-etymology-mcp",
+  "version": "1.0.0",
+  "description": "Quranic Etymology Explorer - Complete project context for AI development",
+  "main": "tools/context-loader.js",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/context-loader.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "quranic",
+    "etymology",
+    "context",
+    "ai",
+    "development",
+    "mcp",
+    "claude"
+  ],
+  "author": "Quranic Etymology Explorer Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_USERNAME/quranic-etymology-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/quranic-etymology-mcp/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/quranic-etymology-mcp#readme"
+}
