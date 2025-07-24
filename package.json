@@ -27,10 +27,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_USERNAME/quranic-etymology-mcp.git"
+    "url": "git+https://github.com/MautasseM01/quranic-etymology-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/quranic-etymology-mcp/issues"
+    "url": "https://github.com/MautasseM01/quranic-etymology-mcp/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/quranic-etymology-mcp#readme"
+  "homepage": "https://github.com/MautasseM01/quranic-etymology-mcp#readme"
 }
