@@ -103,3 +103,8 @@ Educational use - Academic and research purposes
 
 ## Contact
 For questions about this MCP context server or the Quranic Etymology Explorer project, please refer to the project documentation in the context files.
+
+## Frontend Repository
+🌐 **Live Website**: [Quranic Etymology Website](https://github.com/MautasseM01/Quranic-Etymology-Website.git)
+
+This MCP server provides context for the frontend development at the above repository.
