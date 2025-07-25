@@ -2,13 +2,20 @@
 
 /**
  * Quranic Etymology Explorer - MCP Context Server
+ * Compatible with MCP SDK v1.12.0+
  * Provides complete project context for AI-assisted development
  */
 
-const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
-const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
-const fs = require('fs');
-const path = require('path');
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Server configuration
 const server = new Server(
@@ -19,7 +26,6 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
-      resources: {},
     },
   }
 );
@@ -36,7 +42,8 @@ const CONTEXT_FILES = {
   research: '07-RESEARCH-METHODOLOGY-CONTEXT.md',
   deployment: '08-DEPLOYMENT-CONTEXT.md',
   testing: '09-TESTING-STRATEGY-CONTEXT.md',
-  prompts: '10-PROMPTS-LIBRARY-CONTEXT.md'
+  prompts: '10-PROMPTS-LIBRARY-CONTEXT.md',
+  'ai-acceleration': '11-AI-ACCELERATION-STRATEGIES.md'
 };
 
 // Helper function to read context file
@@ -81,8 +88,29 @@ function getContextFiles(sections = ['all']) {
   return content;
 }
 
+// Input schemas
+const LoadProjectContextSchema = z.object({
+  sections: z.array(z.enum([...Object.keys(CONTEXT_FILES), "all"])).optional().default(["all"])
+});
+
+const GetLovablePromptsSchema = z.object({
+  component_type: z.enum(["homepage", "search", "word-detail", "video-gallery", "all"]).optional().default("all")
+});
+
+const GetN8nWorkflowsSchema = z.object({
+  workflow_type: z.enum(["research", "content-generation", "publishing", "all"]).optional().default("all")
+});
+
+const GetSupabaseSchemaSchema = z.object({
+  include_examples: z.boolean().optional().default(true)
+});
+
+const GetDesignSystemSchema = z.object({
+  category: z.enum(["colors", "typography", "spacing", "components", "all"]).optional().default("all")
+});
+
 // Register tools
-server.setRequestHandler('tools/list', async () => {
+server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
@@ -167,14 +195,14 @@ server.setRequestHandler('tools/list', async () => {
 });
 
 // Handle tool calls
-server.setRequestHandler('tools/call', async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
   
   try {
     switch (name) {
       case 'load_project_context': {
-        const sections = args?.sections || ['all'];
-        const content = getContextFiles(sections);
+        const validatedArgs = LoadProjectContextSchema.parse(args);
+        const content = getContextFiles(validatedArgs.sections);
         
         return {
           content: [
@@ -187,8 +215,9 @@ server.setRequestHandler('tools/call', async (request) => {
       }
       
       case 'get_lovable_prompts': {
+        const validatedArgs = GetLovablePromptsSchema.parse(args);
         const promptsContent = readContextFile(CONTEXT_FILES.prompts);
-        const componentType = args?.component_type || 'all';
+        const componentType = validatedArgs.component_type;
         
         let filteredContent = promptsContent;
         if (componentType !== 'all') {
@@ -216,8 +245,9 @@ server.setRequestHandler('tools/call', async (request) => {
       }
       
       case 'get_n8n_workflows': {
+        const validatedArgs = GetN8nWorkflowsSchema.parse(args);
         const workflowsContent = readContextFile(CONTEXT_FILES.workflows);
-        const workflowType = args?.workflow_type || 'all';
+        const workflowType = validatedArgs.workflow_type;
         
         let filteredContent = workflowsContent;
         if (workflowType !== 'all') {
@@ -242,9 +272,10 @@ server.setRequestHandler('tools/call', async (request) => {
       }
       
       case 'get_supabase_schema': {
+        const validatedArgs = GetSupabaseSchemaSchema.parse(args);
         const databaseContent = readContextFile(CONTEXT_FILES.database);
         const apiContent = readContextFile(CONTEXT_FILES.api);
-        const includeExamples = args?.include_examples !== false;
+        const includeExamples = validatedArgs.include_examples;
         
         let content = `# SUPABASE DATABASE SCHEMA & API\n\n${databaseContent}`;
         
@@ -263,8 +294,9 @@ server.setRequestHandler('tools/call', async (request) => {
       }
       
       case 'get_design_system': {
+        const validatedArgs = GetDesignSystemSchema.parse(args);
         const designContent = readContextFile(CONTEXT_FILES.design);
-        const category = args?.category || 'all';
+        const category = validatedArgs.category;
         
         let filteredContent = designContent;
         if (category !== 'all') {
@@ -330,8 +362,6 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
-
-module.exports = { server };

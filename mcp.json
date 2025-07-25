@@ -1,14 +1,94 @@
 {
   "name": "quranic-etymology-context",
   "version": "1.0.0",
-  "description": "Quranic Etymology Explorer - Complete project context for AI development",
+  "description": "Quranic Etymology Explorer - Complete project context for AI development with database schema and AI acceleration strategies",
   "type": "context-provider",
+  "main": "tools/context-loader.js",
+  "bin": {
+    "quranic-etymology-context": "tools/context-loader.js"
+  },
   "capabilities": {
     "tools": [
       {
         "name": "load_project_context",
-        "description": "Load complete Quranic Etymology Explorer project context"
+        "description": "Load complete Quranic Etymology Explorer project context including database schema and AI acceleration strategies",
+        "parameters": {
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["master", "database", "api", "workflows", "frontend", "design", "content", "research", "deployment", "testing", "prompts", "ai-acceleration", "all"]
+            },
+            "description": "Context sections to load (default: all). Use 'database' for schema, 'ai-acceleration' for AI strategies.",
+            "default": ["all"]
+          }
+        }
+      },
+      {
+        "name": "get_supabase_schema",
+        "description": "Get complete Supabase database schema and API specifications",
+        "parameters": {
+          "include_examples": {
+            "type": "boolean",
+            "description": "Include API usage examples",
+            "default": true
+          }
+        }
+      },
+      {
+        "name": "get_n8n_workflows", 
+        "description": "Get n8n workflow templates and configurations",
+        "parameters": {
+          "workflow_type": {
+            "type": "string",
+            "enum": ["research", "content-generation", "publishing", "all"],
+            "description": "Specific workflow templates to retrieve",
+            "default": "all"
+          }
+        }
+      },
+      {
+        "name": "get_lovable_prompts",
+        "description": "Get Lovable frontend development prompts and templates",
+        "parameters": {
+          "component_type": {
+            "type": "string",
+            "enum": ["homepage", "search", "word-detail", "video-gallery", "all"],
+            "description": "Specific component prompts to retrieve",
+            "default": "all"
+          }
+        }
+      },
+      {
+        "name": "get_design_system",
+        "description": "Get complete design system tokens and component specifications",
+        "parameters": {
+          "category": {
+            "type": "string",
+            "enum": ["colors", "typography", "spacing", "components", "all"],
+            "description": "Design system category to retrieve",
+            "default": "all"
+          }
+        }
       }
     ]
-  }
+  },
+  "keywords": [
+    "quranic",
+    "etymology",
+    "context",
+    "ai",
+    "development",
+    "mcp",
+    "claude",
+    "database",
+    "schema",
+    "acceleration",
+    "strategies"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MautasseM01/quranic-etymology-mcp"
+  },
+  "license": "MIT"
 }
