@@ -2,14 +2,13 @@
 
 /**
  * Quranic Etymology Explorer - MCP Context Server
- * Compatible with MCP SDK v1.12.0+
+ * Compatible with MCP SDK v1.12.0+ and gitmcp.io
  * Provides complete project context for AI-assisted development
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,7 +29,7 @@ const server = new Server(
   }
 );
 
-// Context file mappings
+// Context file mappings - Updated with correct filename
 const CONTEXT_FILES = {
   master: '00-PROJECT-MASTER-CONTEXT.md',
   database: '01-DATABASE-SCHEMA-CONTEXT.md',
@@ -53,10 +52,10 @@ function readContextFile(filename) {
     if (fs.existsSync(filePath)) {
       return fs.readFileSync(filePath, 'utf8');
     } else {
-      return `# ERROR: Context file ${filename} not found\n\nFile path: ${filePath}`;
+      return `# Context file ${filename} not found\n\nExpected path: ${filePath}\n\nAvailable files: ${Object.values(CONTEXT_FILES).join(', ')}`;
     }
   } catch (error) {
-    return `# ERROR: Failed to read ${filename}\n\nError: ${error.message}`;
+    return `# Error reading ${filename}\n\nError: ${error.message}`;
   }
 }
 
@@ -67,7 +66,7 @@ function getContextFiles(sections = ['all']) {
   if (sections.includes('all')) {
     // Load all context files
     Object.entries(CONTEXT_FILES).forEach(([key, filename]) => {
-      content += `\n## === ${filename.replace('.md', '').replace(/-/g, ' ').toUpperCase()} ===\n\n`;
+      content += `\n## === ${key.toUpperCase().replace('-', ' ')} CONTEXT ===\n\n`;
       content += readContextFile(filename);
       content += '\n\n---\n';
     });
@@ -76,7 +75,7 @@ function getContextFiles(sections = ['all']) {
     sections.forEach(section => {
       if (CONTEXT_FILES[section]) {
         const filename = CONTEXT_FILES[section];
-        content += `\n## === ${filename.replace('.md', '').replace(/-/g, ' ').toUpperCase()} ===\n\n`;
+        content += `\n## === ${section.toUpperCase().replace('-', ' ')} CONTEXT ===\n\n`;
         content += readContextFile(filename);
         content += '\n\n---\n';
       } else {
@@ -88,34 +87,13 @@ function getContextFiles(sections = ['all']) {
   return content;
 }
 
-// Input schemas
-const LoadProjectContextSchema = z.object({
-  sections: z.array(z.enum([...Object.keys(CONTEXT_FILES), "all"])).optional().default(["all"])
-});
-
-const GetLovablePromptsSchema = z.object({
-  component_type: z.enum(["homepage", "search", "word-detail", "video-gallery", "all"]).optional().default("all")
-});
-
-const GetN8nWorkflowsSchema = z.object({
-  workflow_type: z.enum(["research", "content-generation", "publishing", "all"]).optional().default("all")
-});
-
-const GetSupabaseSchemaSchema = z.object({
-  include_examples: z.boolean().optional().default(true)
-});
-
-const GetDesignSystemSchema = z.object({
-  category: z.enum(["colors", "typography", "spacing", "components", "all"]).optional().default("all")
-});
-
 // Register tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
         name: "load_project_context",
-        description: "Load Quranic Etymology Explorer project context files",
+        description: "Load Quranic Etymology Explorer project context files including database schema and AI acceleration strategies",
         inputSchema: {
           type: "object",
           properties: {
@@ -125,25 +103,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 type: "string",
                 enum: [...Object.keys(CONTEXT_FILES), "all"]
               },
-              description: "Context sections to load (default: all)",
+              description: "Context sections to load. Use 'database' for schema, 'ai-acceleration' for AI strategies, or 'all' for everything.",
               default: ["all"]
             }
           }
         }
       },
       {
-        name: "get_lovable_prompts",
-        description: "Get Lovable frontend development prompts and templates",
+        name: "get_database_schema",
+        description: "Get complete Supabase database schema and API specifications",
         inputSchema: {
           type: "object",
           properties: {
-            component_type: {
-              type: "string",
-              enum: ["homepage", "search", "word-detail", "video-gallery", "all"],
-              description: "Specific component prompts to retrieve",
-              default: "all"
+            include_api: {
+              type: "boolean",
+              description: "Include API endpoints documentation",
+              default: true
             }
           }
+        }
+      },
+      {
+        name: "get_ai_acceleration_strategies",
+        description: "Get AI acceleration strategies for rapid development",
+        inputSchema: {
+          type: "object",
+          properties: {}
         }
       },
       {
@@ -160,35 +145,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             }
           }
         }
-      },
-      {
-        name: "get_supabase_schema",
-        description: "Get complete Supabase database schema and API specifications",
-        inputSchema: {
-          type: "object",
-          properties: {
-            include_examples: {
-              type: "boolean",
-              description: "Include API usage examples",
-              default: true
-            }
-          }
-        }
-      },
-      {
-        name: "get_design_system",
-        description: "Get complete design system tokens and component specifications",
-        inputSchema: {
-          type: "object",
-          properties: {
-            category: {
-              type: "string",
-              enum: ["colors", "typography", "spacing", "components", "all"],
-              description: "Design system category to retrieve",
-              default: "all"
-            }
-          }
-        }
       }
     ]
   };
@@ -201,8 +157,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'load_project_context': {
-        const validatedArgs = LoadProjectContextSchema.parse(args);
-        const content = getContextFiles(validatedArgs.sections);
+        const sections = args?.sections || ['all'];
+        const content = getContextFiles(sections);
         
         return {
           content: [
@@ -214,40 +170,43 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
       
-      case 'get_lovable_prompts': {
-        const validatedArgs = GetLovablePromptsSchema.parse(args);
-        const promptsContent = readContextFile(CONTEXT_FILES.prompts);
-        const componentType = validatedArgs.component_type;
+      case 'get_database_schema': {
+        const databaseContent = readContextFile(CONTEXT_FILES.database);
+        const includeApi = args?.include_api !== false;
         
-        let filteredContent = promptsContent;
-        if (componentType !== 'all') {
-          // Extract specific component prompts
-          const lines = promptsContent.split('\n');
-          const startIndex = lines.findIndex(line => 
-            line.toLowerCase().includes(componentType.replace('-', ' '))
-          );
-          if (startIndex !== -1) {
-            const endIndex = lines.findIndex((line, idx) => 
-              idx > startIndex && line.startsWith('####')
-            );
-            filteredContent = lines.slice(startIndex, endIndex !== -1 ? endIndex : undefined).join('\n');
-          }
+        let content = `# SUPABASE DATABASE SCHEMA\n\n${databaseContent}`;
+        
+        if (includeApi) {
+          const apiContent = readContextFile(CONTEXT_FILES.api);
+          content += `\n\n# API ENDPOINTS\n\n${apiContent}`;
         }
         
         return {
           content: [
             {
               type: "text",
-              text: `# LOVABLE FRONTEND PROMPTS\n\n${filteredContent}`
+              text: content
+            }
+          ]
+        };
+      }
+      
+      case 'get_ai_acceleration_strategies': {
+        const aiAccelerationContent = readContextFile(CONTEXT_FILES['ai-acceleration']);
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: `# AI ACCELERATION STRATEGIES\n\n${aiAccelerationContent}`
             }
           ]
         };
       }
       
       case 'get_n8n_workflows': {
-        const validatedArgs = GetN8nWorkflowsSchema.parse(args);
         const workflowsContent = readContextFile(CONTEXT_FILES.workflows);
-        const workflowType = validatedArgs.workflow_type;
+        const workflowType = args?.workflow_type || 'all';
         
         let filteredContent = workflowsContent;
         if (workflowType !== 'all') {
@@ -266,58 +225,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: "text",
               text: `# N8N WORKFLOW TEMPLATES\n\n${filteredContent}`
-            }
-          ]
-        };
-      }
-      
-      case 'get_supabase_schema': {
-        const validatedArgs = GetSupabaseSchemaSchema.parse(args);
-        const databaseContent = readContextFile(CONTEXT_FILES.database);
-        const apiContent = readContextFile(CONTEXT_FILES.api);
-        const includeExamples = validatedArgs.include_examples;
-        
-        let content = `# SUPABASE DATABASE SCHEMA & API\n\n${databaseContent}`;
-        
-        if (includeExamples) {
-          content += `\n\n# API ENDPOINTS & EXAMPLES\n\n${apiContent}`;
-        }
-        
-        return {
-          content: [
-            {
-              type: "text",
-              text: content
-            }
-          ]
-        };
-      }
-      
-      case 'get_design_system': {
-        const validatedArgs = GetDesignSystemSchema.parse(args);
-        const designContent = readContextFile(CONTEXT_FILES.design);
-        const category = validatedArgs.category;
-        
-        let filteredContent = designContent;
-        if (category !== 'all') {
-          // Extract specific design category
-          const lines = designContent.split('\n');
-          const startIndex = lines.findIndex(line => 
-            line.toLowerCase().includes(category.toLowerCase()) && line.startsWith('#')
-          );
-          if (startIndex !== -1) {
-            const endIndex = lines.findIndex((line, idx) => 
-              idx > startIndex && line.startsWith('#') && !line.toLowerCase().includes(category.toLowerCase())
-            );
-            filteredContent = lines.slice(startIndex, endIndex !== -1 ? endIndex : undefined).join('\n');
-          }
-        }
-        
-        return {
-          content: [
-            {
-              type: "text",
-              text: `# DESIGN SYSTEM - ${category.toUpperCase()}\n\n${filteredContent}`
             }
           ]
         };
@@ -344,6 +251,8 @@ async function main() {
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
+    
+    // Log successful start to stderr (won't interfere with MCP protocol)
     console.error('Quranic Etymology Context MCP Server started successfully');
   } catch (error) {
     console.error('Failed to start MCP server:', error);
@@ -362,6 +271,8 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(console.error);
-}
+// Start the server if this file is run directly
+main().catch((error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+});
