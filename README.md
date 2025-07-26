@@ -3,6 +3,10 @@
 ## Overview
 AI-powered educational platform for deep Quranic word analysis through etymology, frequency patterns, and cross-linguistic research. This MCP server provides complete project context for AI-assisted development.
 
+<a href="https://glama.ai/mcp/servers/@MautasseM01/quranic-etymology-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@MautasseM01/quranic-etymology-mcp/badge" alt="Quranic Etymology Explorer MCP server" />
+</a>
+
 ## Features
 - **Complete Project Context**: Full project specifications and requirements
 - **Database Schema**: Comprehensive Supabase PostgreSQL schema
